@@ -138,10 +138,7 @@ namespace VenderTest
             app.MapHub<ChatHub>("/chathub");
             app.MapControllers();
 
-            // ========================
-            // FIXED RENDER PORT
-            // ========================
-            builder.WebHost.UseUrls($"http://0.0.0.0:{Environment.GetEnvironmentVariable("PORT") ?? "10000"}");
+            
 
             app.Run();
         }
