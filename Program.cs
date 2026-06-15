@@ -65,7 +65,7 @@ namespace VenderTest
             builder.Services.AddSingleton<IOnlineUserService, OnlineUserService>();
 
             // ========================
-            // JWT Authentication
+            // JWT AUTH
             // ========================
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -104,34 +104,37 @@ namespace VenderTest
             builder.Services.AddAuthorization();
 
             // ========================
-            // CORS
+            // CORS (FRONTEND CONNECT FIX)
             // ========================
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AngularPolicy", policy =>
                 {
                     policy.WithOrigins(
-                            "http://localhost:4200",
-                            "https://your-vercel-app.vercel.app"
-                          )
-                          .AllowAnyHeader()
-                          .AllowAnyMethod()
-                          .AllowCredentials();
+                        "http://localhost:4200",
+                        "https://production-vender-test.vercel.app"
+                    )
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
                 });
             });
 
+            // ========================
+            // SignalR
+            // ========================
             builder.Services.AddSignalR();
 
             var app = builder.Build();
 
             // ========================
-            // Swagger (FOR BOTH DEV + PROD)
+            // SWAGGER (ALWAYS ENABLED)
             // ========================
             app.UseSwagger();
             app.UseSwaggerUI();
 
             // ========================
-            // Middleware Order
+            // MIDDLEWARE ORDER
             // ========================
             app.UseCors("AngularPolicy");
 
@@ -139,12 +142,12 @@ namespace VenderTest
             app.UseAuthorization();
 
             // ========================
-            // Routes
+            // ROUTES
             // ========================
             app.MapControllers();
             app.MapHub<ChatHub>("/chathub");
 
-            // Root endpoint (FIX 404 issue)
+            // Root test endpoint
             app.MapGet("/", () => "Vender API is running 🚀");
 
             app.Run();
