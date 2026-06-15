@@ -110,3 +110,9 @@ D:\c2#\VenderTest\VenderTest\obj\Debug\net8.0\refint\VenderTest.dll
 D:\c2#\VenderTest\VenderTest\obj\Debug\net8.0\VenderTest.pdb
 D:\c2#\VenderTest\VenderTest\obj\Debug\net8.0\VenderTest.genruntimeconfig.cache
 D:\c2#\VenderTest\VenderTest\obj\Debug\net8.0\ref\VenderTest.dll
+D:\c2#\VenderTest\VenderTest\bin\Debug\net8.0\out\web.config
+D:\c2#\VenderTest\VenderTest\bin\Debug\net8.0\out\appsettings.Development.json
+D:\c2#\VenderTest\VenderTest\bin\Debug\net8.0\out\appsettings.json
+D:\c2#\VenderTest\VenderTest\bin\Debug\net8.0\out\VenderTest.deps.json
+D:\c2#\VenderTest\VenderTest\bin\Debug\net8.0\out\VenderTest.runtimeconfig.json
+D:\c2#\VenderTest\VenderTest\bin\Debug\net8.0\out\VenderTest.staticwebassets.endpoints.json
