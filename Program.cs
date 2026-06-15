@@ -18,14 +18,14 @@ namespace VenderTest
             var builder = WebApplication.CreateBuilder(args);
 
             // ========================
-            // Controllers + Swagger
+            // CONTROLLERS + SWAGGER
             // ========================
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             // ========================
-            // Services
+            // SERVICES
             // ========================
             builder.Services.AddHttpClient<BarcodeGenerator>();
 
@@ -34,7 +34,7 @@ namespace VenderTest
             builder.Services.AddScoped<DapperDbContext>();
 
             // ========================
-            // Repositories & Services
+            // REPOSITORIES & SERVICES
             // ========================
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
@@ -65,7 +65,7 @@ namespace VenderTest
             builder.Services.AddSingleton<IOnlineUserService, OnlineUserService>();
 
             // ========================
-            // JWT AUTH
+            // JWT AUTHENTICATION
             // ========================
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -104,31 +104,28 @@ namespace VenderTest
             builder.Services.AddAuthorization();
 
             // ========================
-            // CORS (FRONTEND CONNECT FIX)
+            // CORS (PRODUCTION SAFE)
             // ========================
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AngularPolicy", policy =>
                 {
-                    policy.WithOrigins(
-                        "http://localhost:4200",
-                        "https://production-vender-test.vercel.app"
-                    )
+                    policy
+                    .AllowAnyOrigin()
                     .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials();
+                    .AllowAnyMethod();
                 });
             });
 
             // ========================
-            // SignalR
+            // SIGNALR
             // ========================
             builder.Services.AddSignalR();
 
             var app = builder.Build();
 
             // ========================
-            // SWAGGER (ALWAYS ENABLED)
+            // SWAGGER
             // ========================
             app.UseSwagger();
             app.UseSwaggerUI();
@@ -147,8 +144,13 @@ namespace VenderTest
             app.MapControllers();
             app.MapHub<ChatHub>("/chathub");
 
-            // Root test endpoint
             app.MapGet("/", () => "Vender API is running 🚀");
+
+            // ========================
+            // RENDER PORT FIX
+            // ========================
+            var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
+            app.Urls.Add($"http://0.0.0.0:{port}");
 
             app.Run();
         }
