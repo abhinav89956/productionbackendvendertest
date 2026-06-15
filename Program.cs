@@ -1,0 +1,124 @@
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using VenderTest.BarCode;
+using VenderTest.CommonService;
+using VenderTest.Data;
+
+using VenderTest.Repository;
+using VenderTest.Service;
+using VenderTest.Service.VenderTest.Service;
+using VenderTest.Services;
+
+namespace VenderTest
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+
+            // Add services
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+
+            builder.Services.AddHttpClient<BarcodeGenerator>();
+            builder.Services.AddScoped<Common>();
+            builder.Services.AddScoped<BarcodeGenerator>();
+
+
+            builder.Services.AddScoped<DapperDbContext>();
+      
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IForgetRepository, ForgetRepository>();
+            builder.Services.AddScoped<IForgetService, ForgetService>();
+            builder.Services.AddScoped<IItemRepository, ItemRepository>();
+            builder.Services.AddScoped<IItemService, ItemService>();
+            builder.Services.AddScoped<IVendorRepository, VendorRepository>();
+            builder.Services.AddScoped<IVendorService, VendorService>();
+            builder.Services.AddScoped<IBarCodeRepository, BarCodeRepository>();
+            builder.Services.AddScoped<IBarCodeService, BarCodeService>();
+            builder.Services.AddScoped<ISettingRepository, SettingRepository>();
+            builder.Services.AddScoped<ISettingService, SettingService>();
+            builder.Services.AddScoped<IDashboardService, DashboardService>();
+            builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
+            builder.Services.AddScoped<IGenericRepository, GenericRepository>();
+            builder.Services.AddScoped<IChatRepository, ChatRepository>();
+            //builder.Services.AddScoped<ChatHub>();
+            builder.Services.AddScoped<IChatService, ChatService>();
+
+            builder.Services.AddSingleton<IOnlineUserService, OnlineUserService>();
+
+           
+
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                        ValidAudience = builder.Configuration["Jwt:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])
+                        )
+                    };
+
+                
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chathub"))
+                            {
+                                context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
+            builder.Services.AddAuthorization();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAngularApp", policy =>
+                {
+                    policy.WithOrigins("http://localhost:4200")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials(); // ✅ Required for SignalR
+                });
+            });
+
+            // SignalR
+            builder.Services.AddSignalR();
+
+            var app = builder.Build();
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseCors("AllowAngularApp");
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+       
+        
+            app.MapHub<ChatHub>("/chathub"); 
+
+            app.MapControllers();
+
+            app.Run();
+        }
+    }
+}
