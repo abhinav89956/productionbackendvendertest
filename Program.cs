@@ -124,21 +124,28 @@ namespace VenderTest
 
             var app = builder.Build();
 
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            // ========================
+            // Swagger (FOR BOTH DEV + PROD)
+            // ========================
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
+            // ========================
+            // Middleware Order
+            // ========================
             app.UseCors("AngularPolicy");
 
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapHub<ChatHub>("/chathub");
+            // ========================
+            // Routes
+            // ========================
             app.MapControllers();
+            app.MapHub<ChatHub>("/chathub");
 
-            
+            // Root endpoint (FIX 404 issue)
+            app.MapGet("/", () => "Vender API is running 🚀");
 
             app.Run();
         }
