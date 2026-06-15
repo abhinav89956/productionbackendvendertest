@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using VenderTest.DTOs;
 using VenderTest.Service;
-using System;
-using System.Threading.Tasks;
 
 namespace VenderTest.Controllers
 {
@@ -20,6 +17,9 @@ namespace VenderTest.Controllers
             _forgetService = forgetService;
         }
 
+        // ========================
+        // LOGIN
+        // ========================
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto request)
         {
@@ -30,7 +30,7 @@ namespace VenderTest.Controllers
 
                 var result = await _userService.LoginAsync(
                     request.Email,
-                    request.password
+                    request.password   // ✅ FIXED
                 );
 
                 if (result == null)
@@ -46,7 +46,7 @@ namespace VenderTest.Controllers
                 {
                     Status = 1,
                     Message = "Login successful",
-                                        Data = result
+                    Data = result
                 });
             }
             catch (Exception ex)
@@ -60,6 +60,9 @@ namespace VenderTest.Controllers
             }
         }
 
+        // ========================
+        // REGISTER
+        // ========================
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserDto request)
         {
@@ -70,7 +73,7 @@ namespace VenderTest.Controllers
 
                 var result = await _userService.RegisterUserAsync(
                     request.Email,
-                    request.password,
+                    request.password,   // ✅ FIXED
                     request.VenderCode
                 );
 
@@ -86,7 +89,7 @@ namespace VenderTest.Controllers
                 return Ok(new
                 {
                     Status = 1,
-                    message = result.Message,
+                    Message = result.Message,
                     Data = result
                 });
             }
@@ -101,13 +104,15 @@ namespace VenderTest.Controllers
             }
         }
 
-        
+        // ========================
+        // SEND OTP
+        // ========================
         [HttpPost("send-otp")]
         public async Task<IActionResult> SendOtp([FromBody] ForgetDto request)
         {
-            if (request == null
-                || string.IsNullOrEmpty(request.Email)
-                || string.IsNullOrEmpty(request.VenderCode))
+            if (request == null ||
+                string.IsNullOrEmpty(request.Email) ||
+                string.IsNullOrEmpty(request.VenderCode))
             {
                 return BadRequest(new ApiResponseDto
                 {
@@ -117,17 +122,18 @@ namespace VenderTest.Controllers
             }
 
             var result = await _forgetService.SendOtpAsync(request.Email, request.VenderCode);
-
             return Ok(result);
         }
 
-        
+        // ========================
+        // VERIFY OTP
+        // ========================
         [HttpPost("verify-otp")]
         public async Task<IActionResult> VerifyOtp([FromBody] ForgetDto request)
         {
-            if (request == null
-                || string.IsNullOrEmpty(request.Email)
-                || string.IsNullOrEmpty(request.OtpCode))
+            if (request == null ||
+                string.IsNullOrEmpty(request.Email) ||
+                string.IsNullOrEmpty(request.OtpCode))
             {
                 return BadRequest(new ApiResponseDto
                 {
@@ -137,17 +143,18 @@ namespace VenderTest.Controllers
             }
 
             var result = await _forgetService.VerifyOtpAsync(request.Email, request.OtpCode);
-
             return Ok(result);
         }
 
-       
+        // ========================
+        // RESET PASSWORD
+        // ========================
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ForgetDto request)
         {
-            if (request == null
-                || string.IsNullOrEmpty(request.Email)
-                || string.IsNullOrEmpty(request.Password))
+            if (request == null ||
+                string.IsNullOrEmpty(request.Email) ||
+                string.IsNullOrEmpty(request.Password))
             {
                 return BadRequest(new ApiResponseDto
                 {
@@ -157,10 +164,7 @@ namespace VenderTest.Controllers
             }
 
             var result = await _forgetService.ResetPasswordAsync(request.Email, request.Password);
-
             return Ok(result);
         }
     }
 }
-
- 
