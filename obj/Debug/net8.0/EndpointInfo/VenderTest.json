@@ -998,6 +998,10 @@
             "type": "string",
             "nullable": true
           },
+          "paswdHash": {
+            "type": "string",
+            "nullable": true
+          },
           "password": {
             "type": "string",
             "nullable": true

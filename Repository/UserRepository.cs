@@ -1,6 +1,6 @@
 ﻿using BCrypt.Net;
-using Npgsql;
-using Org.BouncyCastle.Crypto.Generators;
+using System.Security.Cryptography;
+using System.Text;
 using VenderTest.DTOs;
 using VenderTest.Repository;
 
@@ -12,89 +12,90 @@ public class UserRepository : IUserRepository
     {
         _repo = repo;
     }
+    private string HashPassword(string password)
+    {
+        using (SHA256 sha = SHA256.Create())
+        {
+            var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
+            return BitConverter.ToString(bytes).Replace("-", "");
+        }
+    }
 
     public async Task<UserDto> LoginAsync(string email, string password)
     {
         try
         {
-            // Step 1: Get user by email only
             var user = await _repo.QueryFirstOrDefaultAsync<UserDto>(
-                @"SELECT * 
-              FROM ""_vender"".""User"" 
-              WHERE ""Email"" = @Email 
-              AND ""IsDeleted"" = FALSE",
-                new { Email = email });
+            @"SELECT 
+            ""UserId"",
+            ""Email"",
+            ""PaswdHash"",
+            ""IsActive"",
+            ""IsDeleted""
+        FROM ""_vender"".""User""
+        WHERE ""Email"" = @Email
+        AND ""IsDeleted"" = FALSE",
+            new { Email = email });
 
             if (user == null)
             {
-                return new UserDto
-                {
-                    Status = 0,
-                    Message = "Invalid email or password"
-                };
+                return new UserDto { Status = 0, Message = "Invalid email or password" };
             }
 
-            // Step 2: Check password using BCrypt
-            bool isValid = BCrypt.Net.BCrypt.Verify(password, user.PaswdHash);
-
-            if (!isValid)
+            // 🔥 SHA256 compare (CORRECT)
+            if (user.PaswdHash != HashPassword(password))
             {
-                return new UserDto
-                {
-                    Status = 0,
-                    Message = "Invalid email or password"
-                };
+                return new UserDto { Status = 0, Message = "Invalid email or password" };
             }
 
-            // Step 3: Success
-            user.Status = 1;
-            user.Message = "Login successful";
-
-            return user;
+            return new UserDto
+            {
+                Status = 1,
+                Message = "Login successful",
+                UserId = user.UserId,
+                Email = user.Email
+            };
         }
-        catch (NpgsqlException)
+        catch (Exception ex)
         {
-            return new UserDto { Status = 0, Message = "Database error occurred" };
-        }
-        catch (Exception)
-        {
-            return new UserDto { Status = 0, Message = "Application error occurred" };
+            return new UserDto { Status = 0, Message = ex.Message };
         }
     }
 
-
+    // ================= REGISTER =================
     public async Task<UserDto> RegisterUserAsync(string email, string password, string venderCode)
     {
         try
         {
-            // SP_RegisterUser(p_Email, p_Password, p_VenderCode)
+            // 🔥 Hash password using BCrypt
+            var hash = BCrypt.Net.BCrypt.HashPassword(password);
+
             var result = await _repo.QueryFirstOrDefaultAsync<UserDto>(
-                "_vender.SP_RegisterUser",
-                new
-                {
-                    Email = email,
-                    Password = password,
-                    VenderCode = venderCode
-                });
-
-            if (result == null)
+            @"INSERT INTO ""_vender"".""User""
+              (""Email"", ""PaswdHash"", ""IsActive"", ""IsDeleted"")
+              VALUES (@Email, @Password, TRUE, FALSE)
+              RETURNING ""UserId"", ""Email"";",
+            new
             {
-                return new UserDto
-                {
-                    Status = 0,
-                    Message = "No response from database"
-                };
-            }
+                Email = email,
+                Password = hash
+            });
 
-            return result;
+            return new UserDto
+            {
+                Status = 1,
+                Message = "User registered successfully",
+                UserId = result?.UserId,
+                Email = result?.Email
+            };
         }
-        catch (NpgsqlException)
+        catch (Exception ex)
         {
-            return new UserDto { Status = 0, Message = "Database error occurred" };
-        }
-        catch (Exception)
-        {
-            return new UserDto { Status = 0, Message = "Application error occurred" };
+            return new UserDto
+            {
+                Status = 0,
+                Message = ex.Message
+            };
         }
     }
 }
