@@ -20,6 +20,20 @@ namespace VenderTest.Controllers
         // ========================
         // LOGIN
         // ========================
+
+        [HttpGet("test")]
+        public async Task<IActionResult> Test()
+        {
+            var result = await _userService.LoginAsync(
+                "as8986503@gmail.com",
+                "12345");
+
+            return Ok(result);
+        }
+
+
+
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto request)
         {
