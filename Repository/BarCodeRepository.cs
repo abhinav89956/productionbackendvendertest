@@ -16,9 +16,8 @@ namespace VenderTest.Repository
         {
             try
             {
-                // SP_Barcode_Delete(p_BarcodeId)
                 var result = await _repo.QueryAsync<BarCodeDto>(
-                    "_vender.SP_Barcode_Delete",
+                    @"SELECT * FROM ""_vender"".sp_barcode_delete(@BarcodeId)",
                     new { BarcodeId = barcodeId }
                 );
 
@@ -28,7 +27,7 @@ namespace VenderTest.Repository
                     Message = "Barcode not deleted"
                 };
             }
-            catch (Exception)
+            catch
             {
                 throw;
             }
@@ -38,9 +37,8 @@ namespace VenderTest.Repository
         {
             try
             {
-                // SP_GetItemsByVenderCode(p_VenderCode)
                 var result = await _repo.QueryAsync<VenderItemsDto>(
-                    "_vender.SP_GetItemsByVenderCode",
+                    @"SELECT * FROM ""_vender"".sp_getitemsbyvendercode(@VenderCode)",
                     new { VenderCode = venderCode }
                 );
 
@@ -59,9 +57,8 @@ namespace VenderTest.Repository
         {
             try
             {
-                // SP_GetVenderItemBarcodes() — no parameters
                 var result = await _repo.QueryAsync<BarCodeDto>(
-                    "_vender.SP_GetVenderItemBarcodes"
+                    @"SELECT * FROM ""_vender"".sp_getvenderitembarcodes()"
                 );
 
                 return result.ToList();
@@ -86,11 +83,15 @@ namespace VenderTest.Repository
         {
             try
             {
-                // SP_InsertVenderItemBarcode(p_VenderCode, p_ItemCode, p_VarCode,
-                //                            p_ManufacturingDate, p_ExpiryDate,
-                //                            p_BarcodeBase64, p_PdfBase64)
                 var result = await _repo.QueryAsync<VenderItemsDto>(
-                    "_vender.SP_InsertVenderItemBarcode",
+                    @"SELECT * FROM ""_vender"".sp_insertvenderitembarcode(
+                        @VenderCode,
+                        @ItemCode,
+                        @VarCode,
+                        @ManufacturingDate,
+                        @ExpiryDate,
+                        @BarcodeBase64,
+                        @PdfBase64)",
                     new
                     {
                         VenderCode = venderCode,

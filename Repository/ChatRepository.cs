@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using Npgsql;
-using System.Data;
 using VenderTest.DTOs;
 
 namespace VenderTest.Repository
@@ -18,19 +17,9 @@ namespace VenderTest.Repository
         {
             try
             {
-                var parameters = new
-                {
-                    ReceiverId = receiverId   // SP_MarkMessageAsSeen only takes ReceiverId
-                };
-
                 await _genericRepository.ExecuteAsync(
-                    "_vender.SP_MarkMessageAsSeen",
-                    parameters
-                );
-            }
-            catch (NpgsqlException ex)
-            {
-                throw new Exception($"Database error in MarkAsSeen: {ex.Message}", ex);
+                    @"SELECT * FROM ""_vender"".sp_markmessageasseen(@ReceiverId)",
+                    new { ReceiverId = receiverId });
             }
             catch (Exception ex)
             {
@@ -38,298 +27,102 @@ namespace VenderTest.Repository
             }
         }
 
-        public async Task<ContactDto> AddContact(int userId, int contactUserId)
-        {
-            try
-            {
-                var parameters = new
-                {
-                    UserId = userId,
-                    ContactUserId = contactUserId
-                };
-
-                return await _genericRepository.QueryFirstOrDefaultAsync<ContactDto>(
-                    "_vender.SP_AddContact",
-                    parameters
-                );
-            }
-            catch (NpgsqlException ex)
-            {
-                throw new Exception($"Database error in AddContact: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to add contact: {ex.Message}", ex);
-            }
-        }
-
         public async Task<IEnumerable<BlockedUserDto>> GetBlockedUsersAsync(int userId)
         {
-            try
-            {
-                var parameters = new { UserId = userId };
-
-                var result = await _genericRepository.QueryAsync<BlockedUserDto>(
-                    "_vender.SP_GetBlockedUsers",
-                    parameters
-                );
-
-                return result ?? Enumerable.Empty<BlockedUserDto>();
-            }
-            catch (NpgsqlException ex)
-            {
-                throw new Exception($"Database error in GetBlockedUsersAsync: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to get blocked users: {ex.Message}", ex);
-            }
+            return await _genericRepository.QueryAsync<BlockedUserDto>(
+                @"SELECT * FROM ""_vender"".sp_getblockedusers(@UserId)",
+                new { UserId = userId });
         }
 
         public async Task<IEnumerable<ContactDto>> GetContacts(int userId)
         {
-            try
-            {
-                var parameters = new { UserId = userId };
-
-                var result = await _genericRepository.QueryAsync<ContactDto>(
-                    "_vender.SP_GetContacts",
-                    parameters
-                );
-
-                return result ?? Enumerable.Empty<ContactDto>();
-            }
-            catch (NpgsqlException ex)
-            {
-                throw new Exception($"Database error in GetContacts: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to get contacts: {ex.Message}", ex);
-            }
+            return await _genericRepository.QueryAsync<ContactDto>(
+                @"SELECT * FROM ""_vender"".sp_getcontacts(@UserId)",
+                new { UserId = userId });
         }
 
         public async Task<MessageResultDto> SendMessage(ChatMessageDto model)
         {
-            try
-            {
-                var parameters = new
+            return await _genericRepository.QueryFirstOrDefaultAsync<MessageResultDto>(
+                @"SELECT * FROM ""_vender"".sp_sendmessage(
+                    @SenderId,
+                    @ReceiverId,
+                    @MessageText,
+                    @MessageType)",
+                new
                 {
-                    SenderId = model.SenderId,
-                    ReceiverId = model.ReceiverId,
-                    MessageText = model.MessageText,
-                    MessageType = model.MessageType
-                };
-
-                return await _genericRepository.QueryFirstOrDefaultAsync<MessageResultDto>(
-                    "_vender.SP_SendMessage",
-                    parameters
-                );
-            }
-            catch (NpgsqlException ex)
-            {
-                throw new Exception($"Database error in SendMessage: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to send message: {ex.Message}", ex);
-            }
+                    model.SenderId,
+                    model.ReceiverId,
+                    model.MessageText,
+                    model.MessageType
+                });
         }
 
         public async Task MarkMessageDelivered(int messageId, int receiverId)
         {
-            try
-            {
-                // Maps to SP_UpdateDeliveredStatus — no SP_MarkMessageDelivered exists
-                var parameters = new { ReceiverId = receiverId };
-
-                await _genericRepository.ExecuteAsync(
-                    "_vender.SP_UpdateDeliveredStatus",
-                    parameters
-                );
-            }
-            catch (NpgsqlException ex)
-            {
-                throw new Exception($"Database error in MarkMessageDelivered: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to mark message as delivered: {ex.Message}", ex);
-            }
+            await _genericRepository.ExecuteAsync(
+                @"SELECT * FROM ""_vender"".sp_updatedeliveredstatus(@ReceiverId)",
+                new { ReceiverId = receiverId });
         }
 
         public async Task<IEnumerable<MessageResultDto>> GetMessages(int user1, int user2)
         {
-            try
-            {
-                var parameters = new
+            return await _genericRepository.QueryAsync<MessageResultDto>(
+                @"SELECT * FROM ""_vender"".sp_getchatmessages(@User1,@User2)",
+                new
                 {
                     User1 = user1,
                     User2 = user2
-                };
-
-                var result = await _genericRepository.QueryAsync<MessageResultDto>(
-                    "_vender.SP_GetChatMessages",
-                    parameters
-                );
-
-                return result ?? Enumerable.Empty<MessageResultDto>();
-            }
-            catch (NpgsqlException ex)
-            {
-                throw new Exception($"Database error in GetMessages: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to get messages: {ex.Message}", ex);
-            }
+                });
         }
 
         public async Task<bool> BlockUser(int userId, int blockedUserId)
         {
-            try
-            {
-                var parameters = new
+            var result = await _genericRepository.QueryFirstOrDefaultAsync<BlockResultDto>(
+                @"SELECT * FROM ""_vender"".sp_toggleblockuser(
+                    @UserId,
+                    @BlockedUserId)",
+                new
                 {
                     UserId = userId,
                     BlockedUserId = blockedUserId
-                };
+                });
 
-                var result = await _genericRepository.QueryFirstOrDefaultAsync<BlockResultDto>(
-                    "_vender.SP_BlockUser",
-                    parameters
-                );
-
-                return result?.IsBlocked ?? false;
-            }
-            catch (NpgsqlException ex)
-            {
-                throw new Exception($"Database error in BlockUser: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to block/unblock user: {ex.Message}", ex);
-            }
-        }
-
-        public async Task<bool> UpdateUserStatus(int userId, string status)
-        {
-            try
-            {
-                // SP_UpdateUserStatus does not exist in the DB — using UserStatus table update approach
-                // If you add a dedicated function later, swap the SQL here
-                var parameters = new
-                {
-                    UserId = userId,
-                    Status = status
-                };
-
-                await _genericRepository.ExecuteAsync(
-                    "_vender.SP_UpdateUserStatus",
-                    parameters
-                );
-
-                return true;
-            }
-            catch (NpgsqlException ex)
-            {
-                throw new Exception($"Database error in UpdateUserStatus: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to update user status: {ex.Message}", ex);
-            }
+            return result?.IsBlocked ?? false;
         }
 
         public async Task<IEnumerable<NotificationDto>> GetNotifications(int userId)
         {
-            try
-            {
-                var parameters = new { UserId = userId };
-
-                var result = await _genericRepository.QueryAsync<NotificationDto>(
-                    "_vender.SP_GetNotifications",
-                    parameters
-                );
-
-                return result ?? Enumerable.Empty<NotificationDto>();
-            }
-            catch (NpgsqlException ex)
-            {
-                throw new Exception($"Database error in GetNotifications: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to get notifications: {ex.Message}", ex);
-            }
+            return await _genericRepository.QueryAsync<NotificationDto>(
+                @"SELECT * FROM ""_vender"".sp_getnotifications(@UserId)",
+                new { UserId = userId });
         }
 
         public async Task UpdateDeliveredStatus(int receiverId)
         {
-            try
-            {
-                var parameters = new { ReceiverId = receiverId };
-
-                await _genericRepository.ExecuteAsync(
-                    "_vender.SP_UpdateDeliveredStatus",
-                    parameters
-                );
-            }
-            catch (NpgsqlException ex)
-            {
-                throw new Exception($"Database error in UpdateDeliveredStatus: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to update delivered status: {ex.Message}", ex);
-            }
+            await _genericRepository.ExecuteAsync(
+                @"SELECT * FROM ""_vender"".sp_updatedeliveredstatus(@ReceiverId)",
+                new { ReceiverId = receiverId });
         }
 
         public async Task UpdateSeenStatus(int messageId, int receiverId, int senderId)
         {
-            try
-            {
-                // SP_UpdateSeenStatus takes (p_ReceiverId, p_MessageId) — note order
-                var parameters = new
+            await _genericRepository.ExecuteAsync(
+                @"SELECT * FROM ""_vender"".sp_updateseenstatus(
+                    @ReceiverId,
+                    @MessageId)",
+                new
                 {
                     ReceiverId = receiverId,
                     MessageId = messageId
-                };
-
-                await _genericRepository.ExecuteAsync(
-                    "_vender.SP_UpdateSeenStatus",
-                    parameters
-                );
-            }
-            catch (NpgsqlException ex)
-            {
-                throw new Exception($"Database error in UpdateSeenStatus: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to update seen status: {ex.Message}", ex);
-            }
+                });
         }
 
         public async Task UpdateLastSeen(int userId)
         {
-            try
-            {
-                var parameters = new { UserId = userId };
-
-                await _genericRepository.ExecuteAsync(
-                    "_vender.SP_UpdateUserLastSeen",
-                    parameters
-                );
-            }
-            catch (NpgsqlException ex)
-            {
-                throw new Exception($"Database error in UpdateLastSeen: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to update last seen: {ex.Message}", ex);
-            }
+            await _genericRepository.ExecuteAsync(
+                @"SELECT * FROM ""_vender"".sp_updateuserlastseen(@UserId)",
+                new { UserId = userId });
         }
     }
 }

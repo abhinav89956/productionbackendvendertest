@@ -42,18 +42,6 @@ namespace VenderTest.Service
             }
         }
 
-        public async Task<ContactDto> AddContact(int userId, int contactUserId)
-        {
-            try
-            {
-                return await _repository.AddContact(userId, contactUserId);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error adding contact {contactUserId} for user {userId}.", ex);
-            }
-        }
-
         public async Task<IEnumerable<ContactDto>> GetContacts(int userId)
         {
             try
@@ -114,17 +102,7 @@ namespace VenderTest.Service
             }
         }
 
-        public async Task<bool> UpdateUserStatus(int userId, string status)
-        {
-            try
-            {
-                return await _repository.UpdateUserStatus(userId, status);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error updating status for user {userId}.", ex);
-            }
-        }
+ 
 
         public async Task UpdateLastSeen(int userId)
         {

@@ -19,9 +19,10 @@ namespace VenderTest.Repository
         {
             try
             {
-                // SP_SendOtp returns (Status, Message, OtpCode)
                 var spResult = await _repo.QueryFirstOrDefaultAsync<OtpResultDto>(
-                    "_vender.SP_SendOtp",
+                    @"SELECT * FROM ""_vender"".sp_sendotp(
+                        @Email,
+                        @VenderCode)",
                     new
                     {
                         Email = email,
@@ -37,7 +38,9 @@ namespace VenderTest.Repository
                     };
                 }
 
-                var emailSent = await _commonService.SendOtpEmailAsync(email, spResult.OtpCode);
+                var emailSent = await _commonService.SendOtpEmailAsync(
+                    email,
+                    spResult.OtpCode);
 
                 if (!emailSent)
                 {
@@ -56,11 +59,19 @@ namespace VenderTest.Repository
             }
             catch (NpgsqlException)
             {
-                return new ApiResponseDto { Status = 0, Message = "Database error occurred" };
+                return new ApiResponseDto
+                {
+                    Status = 0,
+                    Message = "Database error occurred"
+                };
             }
             catch (Exception)
             {
-                return new ApiResponseDto { Status = 0, Message = "Application error occurred" };
+                return new ApiResponseDto
+                {
+                    Status = 0,
+                    Message = "Application error occurred"
+                };
             }
         }
 
@@ -68,9 +79,10 @@ namespace VenderTest.Repository
         {
             try
             {
-                // SP_VerifyOtp takes (p_Email, p_Otp)
                 var spResult = await _repo.QueryFirstOrDefaultAsync<ApiResponseDto>(
-                    "_vender.SP_VerifyOtp",
+                    @"SELECT * FROM ""_vender"".sp_verifyotp(
+                        @Email,
+                        @Otp)",
                     new
                     {
                         Email = email,
@@ -90,11 +102,19 @@ namespace VenderTest.Repository
             }
             catch (NpgsqlException)
             {
-                return new ApiResponseDto { Status = 0, Message = "Database error occurred" };
+                return new ApiResponseDto
+                {
+                    Status = 0,
+                    Message = "Database error occurred"
+                };
             }
             catch (Exception)
             {
-                return new ApiResponseDto { Status = 0, Message = "Application error occurred" };
+                return new ApiResponseDto
+                {
+                    Status = 0,
+                    Message = "Application error occurred"
+                };
             }
         }
 
@@ -102,9 +122,10 @@ namespace VenderTest.Repository
         {
             try
             {
-                // SP_ResetPassword takes (p_Email, p_Password)
                 var spResult = await _repo.QueryFirstOrDefaultAsync<ApiResponseDto>(
-                    "_vender.SP_ResetPassword",
+                    @"SELECT * FROM ""_vender"".sp_resetpassword(
+                        @Email,
+                        @Password)",
                     new
                     {
                         Email = email,
@@ -124,11 +145,19 @@ namespace VenderTest.Repository
             }
             catch (NpgsqlException)
             {
-                return new ApiResponseDto { Status = 0, Message = "Database error occurred" };
+                return new ApiResponseDto
+                {
+                    Status = 0,
+                    Message = "Database error occurred"
+                };
             }
             catch (Exception)
             {
-                return new ApiResponseDto { Status = 0, Message = "Application error occurred" };
+                return new ApiResponseDto
+                {
+                    Status = 0,
+                    Message = "Application error occurred"
+                };
             }
         }
     }

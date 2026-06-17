@@ -67,26 +67,24 @@ public class UserRepository : IUserRepository
     {
         try
         {
-            // 🔥 Hash password using BCrypt
             var hash = BCrypt.Net.BCrypt.HashPassword(password);
 
             var result = await _repo.QueryFirstOrDefaultAsync<UserDto>(
-            @"INSERT INTO ""_vender"".""User""
-              (""Email"", ""PaswdHash"", ""IsActive"", ""IsDeleted"")
-              VALUES (@Email, @Password, TRUE, FALSE)
-              RETURNING ""UserId"", ""Email"";",
-            new
-            {
-                Email = email,
-                Password = hash
-            });
+                @"SELECT * FROM ""_vender"".sp_registeruser(
+                @Email,
+                @Password,
+                @VenderCode)",
+                new
+                {
+                    Email = email,
+                    Password = hash,
+                    VenderCode = venderCode
+                });
 
-            return new UserDto
+            return result ?? new UserDto
             {
-                Status = 1,
-                Message = "User registered successfully",
-                UserId = result?.UserId,
-                Email = result?.Email
+                Status = 0,
+                Message = "Registration failed"
             };
         }
         catch (Exception ex)
@@ -97,5 +95,6 @@ public class UserRepository : IUserRepository
                 Message = ex.Message
             };
         }
-    }
+    
+}
 }
