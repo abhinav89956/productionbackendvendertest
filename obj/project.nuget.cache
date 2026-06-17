@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "FPTiQREUWs0=",
+  "dgSpecHash": "IvfH4wU/ogA=",
   "success": true,
   "projectFilePath": "D:\\c2#\\VenderTest\\VenderTest\\VenderTest.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\SAM\\.nuget\\packages\\bcrypt.net-next\\4.2.0\\bcrypt.net-next.4.2.0.nupkg.sha512",
     "C:\\Users\\SAM\\.nuget\\packages\\bouncycastle\\1.8.9\\bouncycastle.1.8.9.nupkg.sha512",
     "C:\\Users\\SAM\\.nuget\\packages\\bouncycastle.cryptography\\2.6.2\\bouncycastle.cryptography.2.6.2.nupkg.sha512",
     "C:\\Users\\SAM\\.nuget\\packages\\dapper\\2.1.72\\dapper.2.1.72.nupkg.sha512",

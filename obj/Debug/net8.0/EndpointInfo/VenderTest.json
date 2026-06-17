@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "VenderTest",
-    "version": "1.0"
+    "title": "VenderTest API",
+    "version": "v1"
   },
   "paths": {
     "/api/BarCode/GetBarcodes": {
@@ -471,6 +471,18 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/User/test": {
+      "get": {
+        "tags": [
+          "User"
+        ],
         "responses": {
           "200": {
             "description": "OK"

@@ -1,4 +1,6 @@
-﻿using Npgsql;
+﻿using BCrypt.Net;
+using Npgsql;
+using Org.BouncyCastle.Crypto.Generators;
 using VenderTest.DTOs;
 using VenderTest.Repository;
 
@@ -15,16 +17,15 @@ public class UserRepository : IUserRepository
     {
         try
         {
-            // SP_UserLogin(p_Email, p_Password)
-            var result = await _repo.QueryFirstOrDefaultAsync<UserDto>(
-                "_vender.SP_UserLogin",
-                new
-                {
-                    Email = email,
-                    Password = password
-                });
+            // Step 1: Get user by email only
+            var user = await _repo.QueryFirstOrDefaultAsync<UserDto>(
+                @"SELECT * 
+              FROM ""_vender"".""User"" 
+              WHERE ""Email"" = @Email 
+              AND ""IsDeleted"" = FALSE",
+                new { Email = email });
 
-            if (result == null)
+            if (user == null)
             {
                 return new UserDto
                 {
@@ -33,7 +34,23 @@ public class UserRepository : IUserRepository
                 };
             }
 
-            return result;
+            // Step 2: Check password using BCrypt
+            bool isValid = BCrypt.Net.BCrypt.Verify(password, user.PaswdHash);
+
+            if (!isValid)
+            {
+                return new UserDto
+                {
+                    Status = 0,
+                    Message = "Invalid email or password"
+                };
+            }
+
+            // Step 3: Success
+            user.Status = 1;
+            user.Message = "Login successful";
+
+            return user;
         }
         catch (NpgsqlException)
         {

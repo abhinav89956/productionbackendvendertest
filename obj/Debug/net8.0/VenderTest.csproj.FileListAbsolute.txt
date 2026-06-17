@@ -116,3 +116,4 @@ D:\c2#\VenderTest\VenderTest\bin\Debug\net8.0\out\appsettings.json
 D:\c2#\VenderTest\VenderTest\bin\Debug\net8.0\out\VenderTest.deps.json
 D:\c2#\VenderTest\VenderTest\bin\Debug\net8.0\out\VenderTest.runtimeconfig.json
 D:\c2#\VenderTest\VenderTest\bin\Debug\net8.0\out\VenderTest.staticwebassets.endpoints.json
+D:\c2#\VenderTest\VenderTest\bin\Debug\net8.0\BCrypt-Net-Next.dll

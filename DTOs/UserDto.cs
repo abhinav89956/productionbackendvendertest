@@ -4,6 +4,7 @@
     {
         public int Status { get; set; }
         public string? Message { get; set; }
+        public string? PaswdHash { get; set; }
         public string? password { get; set; }
         public string? VenderCode { get; set; }
         public int? UserId { get; set; }
