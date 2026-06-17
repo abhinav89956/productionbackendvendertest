@@ -1,5 +1,4 @@
-﻿using VenderTest.Data;
-using VenderTest.DTOs;
+﻿using VenderTest.DTOs;
 using VenderTest.Models;
 using VenderTest.Repository;
 
@@ -12,24 +11,28 @@ public class ItemRepository : IItemRepository
         _genericRepository = genericRepository;
     }
 
-   
     public async Task<ApiResponseDto> AddItem(Item item)
     {
         try
         {
-            var spResult= await _genericRepository.ExecuteAsync<ApiResponseDto>(
-                "[_vender].[SP_Items_Add]",
+            var spResult = await _genericRepository.QueryFirstOrDefaultAsync<ApiResponseDto>(
+                @"SELECT * FROM ""_vender"".sp_items_add(
+                    @ItemCode,
+                    @ItemDescription,
+                    @UPC)",
                 new
                 {
                     item.ItemCode,
                     item.ItemDescription,
                     item.UPC
-                }
-                
-            );
-            return spResult;
+                });
+
+            return spResult ?? new ApiResponseDto
+            {
+                Status = 0,
+                Message = "No response from database"
+            };
         }
-        
         catch (Exception ex)
         {
             return new ApiResponseDto
@@ -40,22 +43,29 @@ public class ItemRepository : IItemRepository
         }
     }
 
-  
     public async Task<ApiResponseDto> UpdateItem(Item item)
     {
         try
         {
-            var spResult = await _genericRepository.ExecuteAsync<ApiResponseDto>(
-                "[_vender].[SP_Items_Update]",
+            var spResult = await _genericRepository.QueryFirstOrDefaultAsync<ApiResponseDto>(
+                @"SELECT * FROM ""_vender"".sp_items_update(
+                    @ItemId,
+                    @ItemCode,
+                    @ItemDescription,
+                    @UPC)",
                 new
                 {
                     item.ItemId,
                     item.ItemCode,
                     item.ItemDescription,
                     item.UPC
-                }
-            );
-            return spResult;
+                });
+
+            return spResult ?? new ApiResponseDto
+            {
+                Status = 0,
+                Message = "No response from database"
+            };
         }
         catch (Exception ex)
         {
@@ -67,20 +77,23 @@ public class ItemRepository : IItemRepository
         }
     }
 
-  
-
-public async Task<ApiResponseDto> DeleteItem(int itemId)
+    public async Task<ApiResponseDto> DeleteItem(int itemId)
     {
         try
         {
-            var spResult = await _genericRepository.ExecuteAsync<ApiResponseDto>(
-                 "[_vender].[SP_Items_Delete]",
+            var spResult = await _genericRepository.QueryFirstOrDefaultAsync<ApiResponseDto>(
+                @"SELECT * FROM ""_vender"".sp_items_delete(
+                    @ItemId)",
                 new
                 {
                     ItemId = itemId
-                }
-            );
-            return spResult;
+                });
+
+            return spResult ?? new ApiResponseDto
+            {
+                Status = 0,
+                Message = "No response from database"
+            };
         }
         catch (Exception ex)
         {
@@ -91,27 +104,28 @@ public async Task<ApiResponseDto> DeleteItem(int itemId)
             };
         }
     }
+
     public async Task<List<ItemDto>> GetAllItems(string? searchItemCode, int pageNumber, int pageSize)
     {
         try
         {
             var items = await _genericRepository.QueryAsync<ItemDto>(
-                "[_vender].[SP_GetAllItems]",
+                @"SELECT * FROM ""_vender"".sp_getallitems(
+                    @SearchItemCode,
+                    @PageNumber,
+                    @PageSize)",
                 new
                 {
                     SearchItemCode = searchItemCode,
                     PageNumber = pageNumber,
                     PageSize = pageSize
-                }
-            );
+                });
 
-            return items.ToList(); 
+            return items.ToList();
         }
-        catch (Exception ex)
+        catch
         {
-           
-            return new List<ItemDto>(); 
+            return new List<ItemDto>();
         }
     }
-
 }
