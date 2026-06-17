@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using VenderTest.BarCode;
+﻿using VenderTest.BarCode;
 using VenderTest.DTOs;
 
 namespace VenderTest.Repository
@@ -7,21 +6,22 @@ namespace VenderTest.Repository
     public class BarCodeRepository : IBarCodeRepository
     {
         private readonly IGenericRepository _repo;
-        
+
         public BarCodeRepository(IGenericRepository repo)
         {
             _repo = repo;
-             
         }
 
-        public async Task<BarCodeDto> DeleteBarcode(int BarcodeId)
+        public async Task<BarCodeDto> DeleteBarcode(int barcodeId)
         {
             try
             {
-                var result= await _repo.QueryAsync<BarCodeDto>(
-                    "[_vender].[SP_Barcode_Delete]",
-                    new { BarcodeId = BarcodeId }
+                // SP_Barcode_Delete(p_BarcodeId)
+                var result = await _repo.QueryAsync<BarCodeDto>(
+                    "_vender.SP_Barcode_Delete",
+                    new { BarcodeId = barcodeId }
                 );
+
                 return result.FirstOrDefault() ?? new BarCodeDto
                 {
                     Status = 0,
@@ -30,7 +30,6 @@ namespace VenderTest.Repository
             }
             catch (Exception)
             {
-
                 throw;
             }
         }
@@ -39,21 +38,20 @@ namespace VenderTest.Repository
         {
             try
             {
+                // SP_GetItemsByVenderCode(p_VenderCode)
                 var result = await _repo.QueryAsync<VenderItemsDto>(
-                    "[_vender].[SP_GetItemsByVenderCode]",
+                    "_vender.SP_GetItemsByVenderCode",
                     new { VenderCode = venderCode }
                 );
 
-                var data = result.ToList();
-
-                return data;
+                return result.ToList();
             }
             catch (Exception ex)
             {
                 return new List<VenderItemsDto>
-        {
-            new VenderItemsDto { Status = 0, Message = ex.Message }
-        };
+                {
+                    new VenderItemsDto { Status = 0, Message = ex.Message }
+                };
             }
         }
 
@@ -61,40 +59,43 @@ namespace VenderTest.Repository
         {
             try
             {
+                // SP_GetVenderItemBarcodes() — no parameters
                 var result = await _repo.QueryAsync<BarCodeDto>(
-                    "[_vender].[SP_GetVenderItemBarcodes]"
+                    "_vender.SP_GetVenderItemBarcodes"
                 );
 
-                var data = result.ToList();
-
-                return data;
+                return result.ToList();
             }
             catch (Exception ex)
             {
                 return new List<BarCodeDto>
-        {
-            new BarCodeDto
-            {
-                Status = 0,
-                Message = ex.Message
-            }
-        };
+                {
+                    new BarCodeDto { Status = 0, Message = ex.Message }
+                };
             }
         }
 
         public async Task<VenderItemsDto> InsertVenderItemBarcodeAsync(
-         string venderCode, string itemCode, DateTime manufacturingDate, DateTime expiryDate, string barcodeBase64, string pdfBase64, string Varcode
-            )
+            string venderCode,
+            string itemCode,
+            DateTime manufacturingDate,
+            DateTime expiryDate,
+            string barcodeBase64,
+            string pdfBase64,
+            string varcode)
         {
             try
             {
+                // SP_InsertVenderItemBarcode(p_VenderCode, p_ItemCode, p_VarCode,
+                //                            p_ManufacturingDate, p_ExpiryDate,
+                //                            p_BarcodeBase64, p_PdfBase64)
                 var result = await _repo.QueryAsync<VenderItemsDto>(
-                    "[_vender].[sp_InsertVenderItemBarcode]",
+                    "_vender.SP_InsertVenderItemBarcode",
                     new
                     {
-                        VarCode= Varcode,
                         VenderCode = venderCode,
                         ItemCode = itemCode,
+                        VarCode = varcode,
                         ManufacturingDate = manufacturingDate,
                         ExpiryDate = expiryDate,
                         BarcodeBase64 = barcodeBase64,
@@ -117,7 +118,5 @@ namespace VenderTest.Repository
                 };
             }
         }
-
-        
     }
 }

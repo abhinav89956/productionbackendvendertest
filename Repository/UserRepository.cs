@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Npgsql;
 using VenderTest.DTOs;
 using VenderTest.Repository;
 
@@ -15,7 +15,8 @@ public class UserRepository : IUserRepository
     {
         try
         {
-            var result = await _repo.ExecuteAsync<UserDto>(
+            // SP_UserLogin(p_Email, p_Password)
+            var result = await _repo.QueryFirstOrDefaultAsync<UserDto>(
                 "_vender.SP_UserLogin",
                 new
                 {
@@ -34,21 +35,13 @@ public class UserRepository : IUserRepository
 
             return result;
         }
-        catch (SqlException)
+        catch (NpgsqlException)
         {
-            return new UserDto
-            {
-                Status = 0,
-                Message = "Database error occurred"
-            };
+            return new UserDto { Status = 0, Message = "Database error occurred" };
         }
         catch (Exception)
         {
-            return new UserDto
-            {
-                Status = 0,
-                Message = "Application error occurred"
-            };
+            return new UserDto { Status = 0, Message = "Application error occurred" };
         }
     }
 
@@ -56,8 +49,9 @@ public class UserRepository : IUserRepository
     {
         try
         {
-            var result = await _repo.ExecuteAsync<UserDto>(
-                "[_vender].[SP_RegisterUser]",
+            // SP_RegisterUser(p_Email, p_Password, p_VenderCode)
+            var result = await _repo.QueryFirstOrDefaultAsync<UserDto>(
+                "_vender.SP_RegisterUser",
                 new
                 {
                     Email = email,
@@ -76,21 +70,13 @@ public class UserRepository : IUserRepository
 
             return result;
         }
-        catch (SqlException)
+        catch (NpgsqlException)
         {
-            return new UserDto
-            {
-                Status = 0,
-                Message = "Database error occurred"
-            };
+            return new UserDto { Status = 0, Message = "Database error occurred" };
         }
         catch (Exception)
         {
-            return new UserDto
-            {
-                Status = 0,
-                Message = "Application error occurred"
-            };
+            return new UserDto { Status = 0, Message = "Application error occurred" };
         }
     }
 }

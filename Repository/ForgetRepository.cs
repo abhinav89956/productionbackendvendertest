@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Npgsql;
 using VenderTest.CommonService;
 using VenderTest.DTOs;
 
@@ -8,19 +8,20 @@ namespace VenderTest.Repository
     {
         private readonly IGenericRepository _repo;
         private readonly Common _commonService;
-        public ForgetRepository(IGenericRepository repo,Common common)
+
+        public ForgetRepository(IGenericRepository repo, Common common)
         {
             _repo = repo;
             _commonService = common;
         }
 
-
         public async Task<ApiResponseDto> SendOtpAsync(string email, string venderCode)
         {
             try
             {
-                var spResult = await _repo.ExecuteAsync<ApiResponseDto>(
-                    "[_vender].[SP_SendOtp]",
+                // SP_SendOtp returns (Status, Message, OtpCode)
+                var spResult = await _repo.QueryFirstOrDefaultAsync<OtpResultDto>(
+                    "_vender.SP_SendOtp",
                     new
                     {
                         Email = email,
@@ -32,7 +33,7 @@ namespace VenderTest.Repository
                     return new ApiResponseDto
                     {
                         Status = 0,
-                        Message = spResult?.Message?? "Invalid Email or Vendor Code"
+                        Message = spResult?.Message ?? "Invalid Email or Vendor Code"
                     };
                 }
 
@@ -53,31 +54,23 @@ namespace VenderTest.Repository
                     Message = "OTP Sent Successfully"
                 };
             }
-            catch (SqlException)
+            catch (NpgsqlException)
             {
-                return new ApiResponseDto
-                {
-                    Status = 0,
-                    Message = "Database error occurred"
-                };
+                return new ApiResponseDto { Status = 0, Message = "Database error occurred" };
             }
             catch (Exception)
             {
-                return new ApiResponseDto
-                {
-                    Status = 0,
-                    Message = "Application error occurred"
-                };
+                return new ApiResponseDto { Status = 0, Message = "Application error occurred" };
             }
         }
-
 
         public async Task<ApiResponseDto> VerifyOtpAsync(string email, string otp)
         {
             try
             {
-                var spResult = await _repo.ExecuteAsync<ApiResponseDto>(
-                    "[_vender].[SP_VerifyOtp]",
+                // SP_VerifyOtp takes (p_Email, p_Otp)
+                var spResult = await _repo.QueryFirstOrDefaultAsync<ApiResponseDto>(
+                    "_vender.SP_VerifyOtp",
                     new
                     {
                         Email = email,
@@ -95,31 +88,23 @@ namespace VenderTest.Repository
 
                 return spResult;
             }
-            catch (SqlException)
+            catch (NpgsqlException)
             {
-                return new ApiResponseDto
-                {
-                    Status = 0,
-                    Message = "Database error occurred"
-                };
+                return new ApiResponseDto { Status = 0, Message = "Database error occurred" };
             }
             catch (Exception)
             {
-                return new ApiResponseDto
-                {
-                    Status = 0,
-                    Message = "Application error occurred"
-                };
+                return new ApiResponseDto { Status = 0, Message = "Application error occurred" };
             }
         }
-
 
         public async Task<ApiResponseDto> ResetPasswordAsync(string email, string password)
         {
             try
             {
-                var spResult = await _repo.ExecuteAsync<ApiResponseDto>(
-                    "[_vender].[SP_ResetPassword]",
+                // SP_ResetPassword takes (p_Email, p_Password)
+                var spResult = await _repo.QueryFirstOrDefaultAsync<ApiResponseDto>(
+                    "_vender.SP_ResetPassword",
                     new
                     {
                         Email = email,
@@ -137,21 +122,13 @@ namespace VenderTest.Repository
 
                 return spResult;
             }
-            catch (SqlException)
+            catch (NpgsqlException)
             {
-                return new ApiResponseDto
-                {
-                    Status = 0,
-                    Message = "Database error occurred"
-                };
+                return new ApiResponseDto { Status = 0, Message = "Database error occurred" };
             }
             catch (Exception)
             {
-                return new ApiResponseDto
-                {
-                    Status = 0,
-                    Message = "Application error occurred"
-                };
+                return new ApiResponseDto { Status = 0, Message = "Application error occurred" };
             }
         }
     }

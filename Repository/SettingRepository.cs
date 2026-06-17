@@ -1,6 +1,4 @@
-﻿using VenderTest.DTOs;
-using VenderTest.Models;
-
+﻿using VenderTest.Models;
 
 namespace VenderTest.Repository
 {
@@ -15,21 +13,25 @@ namespace VenderTest.Repository
 
         public async Task<Setting> GetSettings()
         {
+            // SP_Settings_Get() — no parameters
             var result = await _genericRepository.QueryFirstOrDefaultAsync<Setting>(
-                "[_vender].[SP_Settings_Get]"
+                "_vender.SP_Settings_Get"
             );
+
             return result;
         }
+
         public async Task<Setting> UpdateSettings(Setting model)
         {
+            // SP_Settings_Update(p_Id, p_MinExpiryMonths, p_ManufacturingDays, p_ExpiryTokenHrs)
             var result = await _genericRepository.QueryFirstOrDefaultAsync<Setting>(
-                "[_vender].[SP_Settings_Update]",
+                "_vender.SP_Settings_Update",
                 new
                 {
-                    model.Id,
-                    model.MinExpiryMonths,
-                    model.ManufacturingDays,  
-                    model.ExpiryTokenHrs
+                    Id = model.Id,
+                    MinExpiryMonths = model.MinExpiryMonths,
+                    ManufacturingDays = model.ManufacturingDays,
+                    ExpiryTokenHrs = model.ExpiryTokenHrs
                 }
             );
 

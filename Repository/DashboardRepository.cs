@@ -13,8 +13,9 @@ namespace VenderTest.Repository
 
         public async Task<DashboardVendorDto> GetVendorByUserId(int userId)
         {
+            // SP_GetVenderByUserId(p_UserId)
             var result = await _repo.QueryFirstOrDefaultAsync<DashboardVendorDto>(
-                "[_vender].[SP_GetVenderByUserId]",   
+                "_vender.SP_GetVenderByUserId",
                 new { UserId = userId }
             );
 

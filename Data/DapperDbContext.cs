@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Npgsql;
 using System.Data;
 
 namespace VenderTest.Data
@@ -16,7 +16,7 @@ namespace VenderTest.Data
         {
             try
             {
-                return new SqlConnection(
+                return new NpgsqlConnection(
                     _config.GetConnectionString("DefaultConnection"));
             }
             catch (Exception ex)

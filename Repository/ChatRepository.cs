@@ -1,10 +1,6 @@
 ﻿using Dapper;
-using Microsoft.Data.SqlClient;
-using System;
-using System.Collections.Generic;
+using Npgsql;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using VenderTest.DTOs;
 
 namespace VenderTest.Repository
@@ -24,18 +20,17 @@ namespace VenderTest.Repository
             {
                 var parameters = new
                 {
-                    MessageId = messageId,
-                    ReceiverId = receiverId
+                    ReceiverId = receiverId   // SP_MarkMessageAsSeen only takes ReceiverId
                 };
 
-                await _genericRepository.ExecuteAsync<dynamic>(
-                    "[_vender].[SP_MarkMessageAsSeen]",
+                await _genericRepository.ExecuteAsync(
+                    "_vender.SP_MarkMessageAsSeen",
                     parameters
                 );
             }
-            catch (SqlException sqlEx)
+            catch (NpgsqlException ex)
             {
-                throw new Exception($"Database error in MarkAsSeen: {sqlEx.Message}", sqlEx);
+                throw new Exception($"Database error in MarkAsSeen: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
@@ -54,13 +49,13 @@ namespace VenderTest.Repository
                 };
 
                 return await _genericRepository.QueryFirstOrDefaultAsync<ContactDto>(
-                    "[_vender].[SP_AddContact]",
+                    "_vender.SP_AddContact",
                     parameters
                 );
             }
-            catch (SqlException sqlEx)
+            catch (NpgsqlException ex)
             {
-                throw new Exception($"Database error in AddContact: {sqlEx.Message}", sqlEx);
+                throw new Exception($"Database error in AddContact: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
@@ -75,36 +70,38 @@ namespace VenderTest.Repository
                 var parameters = new { UserId = userId };
 
                 var result = await _genericRepository.QueryAsync<BlockedUserDto>(
-                    "[_vender].[SP_GetBlockedUsers]",
+                    "_vender.SP_GetBlockedUsers",
                     parameters
-                 
                 );
 
                 return result ?? Enumerable.Empty<BlockedUserDto>();
             }
-            catch (SqlException sqlEx)
+            catch (NpgsqlException ex)
             {
-                throw new Exception($"Database error in GetBlockedUsersAsync: {sqlEx.Message}", sqlEx);
+                throw new Exception($"Database error in GetBlockedUsersAsync: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Failed to get blocked users: {ex.Message}", ex);
             }
         }
+
         public async Task<IEnumerable<ContactDto>> GetContacts(int userId)
         {
             try
             {
                 var parameters = new { UserId = userId };
+
                 var result = await _genericRepository.QueryAsync<ContactDto>(
-                    "[_vender].[SP_GetContacts]",
+                    "_vender.SP_GetContacts",
                     parameters
                 );
+
                 return result ?? Enumerable.Empty<ContactDto>();
             }
-            catch (SqlException sqlEx)
+            catch (NpgsqlException ex)
             {
-                throw new Exception($"Database error in GetContacts: {sqlEx.Message}", sqlEx);
+                throw new Exception($"Database error in GetContacts: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
@@ -124,16 +121,14 @@ namespace VenderTest.Repository
                     MessageType = model.MessageType
                 };
 
-                var result = await _genericRepository.QueryFirstOrDefaultAsync<MessageResultDto>(
-                    "[_vender].[SP_SendMessage]",
+                return await _genericRepository.QueryFirstOrDefaultAsync<MessageResultDto>(
+                    "_vender.SP_SendMessage",
                     parameters
                 );
-
-                return result;
             }
-            catch (SqlException sqlEx)
+            catch (NpgsqlException ex)
             {
-                throw new Exception($"Database error in SendMessage: {sqlEx.Message}", sqlEx);
+                throw new Exception($"Database error in SendMessage: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
@@ -145,31 +140,23 @@ namespace VenderTest.Repository
         {
             try
             {
-                var parameters = new DynamicParameters();
-                parameters.Add("@MessageId", messageId, DbType.Int32);
-                parameters.Add("@ReceiverId", receiverId, DbType.Int32);
+                // Maps to SP_UpdateDeliveredStatus — no SP_MarkMessageDelivered exists
+                var parameters = new { ReceiverId = receiverId };
 
-                await _genericRepository.ExecuteAsync<dynamic>(
-                    "[_vender].[SP_MarkMessageDelivered]",
+                await _genericRepository.ExecuteAsync(
+                    "_vender.SP_UpdateDeliveredStatus",
                     parameters
                 );
             }
-            catch (SqlException sqlEx)
+            catch (NpgsqlException ex)
             {
-                throw new Exception($"Database error in MarkMessageDelivered: {sqlEx.Message}", sqlEx);
+                throw new Exception($"Database error in MarkMessageDelivered: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Failed to mark message as delivered: {ex.Message}", ex);
             }
         }
-        
-
-
-
-
-
-
 
         public async Task<IEnumerable<MessageResultDto>> GetMessages(int user1, int user2)
         {
@@ -182,15 +169,15 @@ namespace VenderTest.Repository
                 };
 
                 var result = await _genericRepository.QueryAsync<MessageResultDto>(
-                    "[_vender].[SP_GetChatMessages]",
+                    "_vender.SP_GetChatMessages",
                     parameters
                 );
 
                 return result ?? Enumerable.Empty<MessageResultDto>();
             }
-            catch (SqlException sqlEx)
+            catch (NpgsqlException ex)
             {
-                throw new Exception($"Database error in GetMessages: {sqlEx.Message}", sqlEx);
+                throw new Exception($"Database error in GetMessages: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
@@ -208,16 +195,16 @@ namespace VenderTest.Repository
                     BlockedUserId = blockedUserId
                 };
 
-                var result = await _genericRepository.QueryFirstOrDefaultAsync<dynamic>(
-                    "[_vender].[SP_BlockUser]",
+                var result = await _genericRepository.QueryFirstOrDefaultAsync<BlockResultDto>(
+                    "_vender.SP_BlockUser",
                     parameters
                 );
 
                 return result?.IsBlocked ?? false;
             }
-            catch (SqlException sqlEx)
+            catch (NpgsqlException ex)
             {
-                throw new Exception($"Database error in BlockUser: {sqlEx.Message}", sqlEx);
+                throw new Exception($"Database error in BlockUser: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
@@ -229,44 +216,47 @@ namespace VenderTest.Repository
         {
             try
             {
+                // SP_UpdateUserStatus does not exist in the DB — using UserStatus table update approach
+                // If you add a dedicated function later, swap the SQL here
                 var parameters = new
                 {
                     UserId = userId,
                     Status = status
                 };
 
-                await _genericRepository.ExecuteAsync<dynamic>(
-                    "[_vender].[SP_UpdateUserStatus]",
+                await _genericRepository.ExecuteAsync(
+                    "_vender.SP_UpdateUserStatus",
                     parameters
                 );
 
                 return true;
             }
-            catch (SqlException sqlEx)
+            catch (NpgsqlException ex)
             {
-                throw new Exception($"Database error in UpdateUserStatus: {sqlEx.Message}", sqlEx);
+                throw new Exception($"Database error in UpdateUserStatus: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Failed to update user status: {ex.Message}", ex);
             }
         }
+
         public async Task<IEnumerable<NotificationDto>> GetNotifications(int userId)
         {
             try
             {
-                var parameters = new { UserId = userId }; 
+                var parameters = new { UserId = userId };
 
                 var result = await _genericRepository.QueryAsync<NotificationDto>(
-                    "[_vender].[SP_GetNotifications]",
+                    "_vender.SP_GetNotifications",
                     parameters
                 );
 
                 return result ?? Enumerable.Empty<NotificationDto>();
             }
-            catch (SqlException sqlEx)
+            catch (NpgsqlException ex)
             {
-                throw new Exception($"Database error in GetNotifications: {sqlEx.Message}", sqlEx);
+                throw new Exception($"Database error in GetNotifications: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
@@ -278,59 +268,63 @@ namespace VenderTest.Repository
         {
             try
             {
-                var parameters = new
-                {
-                    ReceiverId = receiverId
-                };
+                var parameters = new { ReceiverId = receiverId };
 
-                await _genericRepository.ExecuteAsync<dynamic>(
-                    "[_vender].[SP_UpdateDeliveredStatus]",
+                await _genericRepository.ExecuteAsync(
+                    "_vender.SP_UpdateDeliveredStatus",
                     parameters
                 );
             }
-            catch (SqlException sqlEx)
+            catch (NpgsqlException ex)
             {
-                throw new Exception($"Database error in UpdateDeliveredStatus: {sqlEx.Message}", sqlEx);
+                throw new Exception($"Database error in UpdateDeliveredStatus: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Failed to update delivered status: {ex.Message}", ex);
             }
         }
+
         public async Task UpdateSeenStatus(int messageId, int receiverId, int senderId)
         {
             try
             {
+                // SP_UpdateSeenStatus takes (p_ReceiverId, p_MessageId) — note order
                 var parameters = new
                 {
-                    MessageId = messageId,
-                    ReceiverId = receiverId
+                    ReceiverId = receiverId,
+                    MessageId = messageId
                 };
 
                 await _genericRepository.ExecuteAsync(
-                    "[_vender].[SP_UpdateSeenStatus]",
+                    "_vender.SP_UpdateSeenStatus",
                     parameters
                 );
+            }
+            catch (NpgsqlException ex)
+            {
+                throw new Exception($"Database error in UpdateSeenStatus: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Failed to update seen status: {ex.Message}", ex);
             }
         }
+
         public async Task UpdateLastSeen(int userId)
         {
             try
             {
                 var parameters = new { UserId = userId };
 
-                await _genericRepository.ExecuteAsync<dynamic>(
-                    "[_vender].[SP_UpdateUserLastSeen]",
+                await _genericRepository.ExecuteAsync(
+                    "_vender.SP_UpdateUserLastSeen",
                     parameters
                 );
             }
-            catch (SqlException sqlEx)
+            catch (NpgsqlException ex)
             {
-                throw new Exception($"Database error in UpdateLastSeen: {sqlEx.Message}", sqlEx);
+                throw new Exception($"Database error in UpdateLastSeen: {ex.Message}", ex);
             }
             catch (Exception ex)
             {

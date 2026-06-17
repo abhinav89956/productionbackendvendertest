@@ -633,6 +633,25 @@
         }
       }
     },
+    "/": {
+      "get": {
+        "tags": [
+          "VenderTest"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Vendor/GetAllVenders": {
       "get": {
         "tags": [

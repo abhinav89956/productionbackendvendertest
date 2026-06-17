@@ -14,14 +14,14 @@ namespace VenderTest.Repository
         }
 
         public async Task<List<Vendor>> GetAllVenders(
-      string? searchVenderCode,
-      int pageNumber,
-      int pageSize)
+            string? searchVenderCode,
+            int pageNumber,
+            int pageSize)
         {
             try
             {
                 var venders = await _genericRepository.QueryAsync<Vendor>(
-                    "[_vender].[SP_GetAllVenders]",
+                    "_vender.SP_GetAllVenders",
                     new
                     {
                         SearchVenderCode = searchVenderCode,
@@ -36,21 +36,20 @@ namespace VenderTest.Repository
             {
                 return new List<Vendor>();
             }
-        
         }
-
 
         public async Task<ApiResponseDto> AddVendor(Vendor vendor)
         {
             try
             {
-                var spResult = await _genericRepository.ExecuteAsync<ApiResponseDto>(
-                    "[_vender].[SP_AddVenderWithLotStrict]",
+                // SP_AddVenderWithLotStrict(p_VenderCode, p_CodeDescription, p_Email)
+                var spResult = await _genericRepository.QueryFirstOrDefaultAsync<ApiResponseDto>(
+                    "_vender.SP_AddVenderWithLotStrict",
                     new
                     {
                         VenderCode = vendor.VenderCode,
                         CodeDescription = vendor.CodeDescription,
-                        Email = vendor.Email,
+                        Email = vendor.Email
                     }
                 );
 
@@ -74,15 +73,16 @@ namespace VenderTest.Repository
         {
             try
             {
-                var spResult = await _genericRepository.ExecuteAsync<ApiResponseDto>(
-                    "[_vender].[SP_UpdateVender]",
+                // SP_UpdateVender(p_VenderId, p_VenderCode, p_CodeDescription, p_Email, p_IsActive)
+                var spResult = await _genericRepository.QueryFirstOrDefaultAsync<ApiResponseDto>(
+                    "_vender.SP_UpdateVender",
                     new
                     {
                         VenderId = vendor.VenderId,
                         VenderCode = vendor.VenderCode,
                         CodeDescription = vendor.CodeDescription,
                         Email = vendor.Email,
-                      IsActive=vendor.IsActive
+                        IsActive = vendor.IsActive
                     }
                 );
 
@@ -102,17 +102,14 @@ namespace VenderTest.Repository
             }
         }
 
-
         public async Task<ApiResponseDto> DeleteVender(Vendor vendor)
         {
             try
             {
-                var spResult = await _genericRepository.ExecuteAsync<ApiResponseDto>(
-                    "[_vender].[SP_DeleteVender]",
-                    new
-                    {
-                        VenderId = vendor.VenderId
-                    }
+                // SP_DeleteVender(p_VenderId)
+                var spResult = await _genericRepository.QueryFirstOrDefaultAsync<ApiResponseDto>(
+                    "_vender.SP_DeleteVender",
+                    new { VenderId = vendor.VenderId }
                 );
 
                 return spResult ?? new ApiResponseDto
@@ -131,18 +128,18 @@ namespace VenderTest.Repository
             }
         }
 
-
         public async Task<VenderAsignDto> AsignItems(string itemCode, string venderCode)
         {
             try
             {
-                var spResult = await _genericRepository.ExecuteAsync<VenderAsignDto>(
-                    "[_vender].[SP_VenderItems_AssignUnassign]",
+                // SP_VenderItems_AssignUnassign(p_VenderCode, p_ItemCode, p_Action)
+                var spResult = await _genericRepository.QueryFirstOrDefaultAsync<VenderAsignDto>(
+                    "_vender.SP_VenderItems_AssignUnassign",
                     new
                     {
                         VenderCode = venderCode,
                         ItemCode = itemCode,
-                        Action = "ASSIGN" 
+                        Action = "ASSIGN"
                     }
                 );
 
@@ -158,16 +155,16 @@ namespace VenderTest.Repository
             }
         }
 
-        public async Task<VenderAsignDto> UnAsignItems(string ItemCode, string VenderCode)
+        public async Task<VenderAsignDto> UnAsignItems(string itemCode, string venderCode)
         {
             try
             {
-                var spResult = await _genericRepository.ExecuteAsync<VenderAsignDto>(
-                    "[_vender].[SP_VenderItems_AssignUnassign]",
+                var spResult = await _genericRepository.QueryFirstOrDefaultAsync<VenderAsignDto>(
+                    "_vender.SP_VenderItems_AssignUnassign",
                     new
                     {
-                        ItemCode = ItemCode,
-                        VenderCode = VenderCode,
+                        VenderCode = venderCode,
+                        ItemCode = itemCode,
                         Action = "UNASSIGN"
                     }
                 );

@@ -1063,11 +1063,10 @@
           }
         }
       },
-      "Npgsql/10.0.2": {
+      "Npgsql/8.0.9": {
         "type": "package",
         "dependencies": {
-          "Microsoft.Extensions.Logging.Abstractions": "8.0.0",
-          "System.Diagnostics.DiagnosticSource": "9.0.11"
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.0"
         },
         "compile": {
           "lib/net8.0/Npgsql.dll": {
@@ -3058,21 +3057,25 @@
         "packageIcon.png"
       ]
     },
-    "Npgsql/10.0.2": {
-      "sha512": "q5RfBI+wywJSFUNDE1L4ZbHEHCFTblo8Uf6A6oe4feOUFYiUQXyAf9GBh5qEZpvJaHiEbpBPkQumjEhXCJxdrg==",
+    "Npgsql/8.0.9": {
+      "sha512": "H7O9NrvSO+BaojUOK59YmSOi7+RabnBoNPw1F7NgtZhw5uBeAA3bCjTH2VjgacUVHe8K1asPyj/a/mnhJ/e1yA==",
       "type": "package",
-      "path": "npgsql/10.0.2",
+      "path": "npgsql/8.0.9",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "README.md",
-        "lib/net10.0/Npgsql.dll",
-        "lib/net10.0/Npgsql.xml",
+        "lib/net6.0/Npgsql.dll",
+        "lib/net6.0/Npgsql.xml",
+        "lib/net7.0/Npgsql.dll",
+        "lib/net7.0/Npgsql.xml",
         "lib/net8.0/Npgsql.dll",
         "lib/net8.0/Npgsql.xml",
-        "lib/net9.0/Npgsql.dll",
-        "lib/net9.0/Npgsql.xml",
-        "npgsql.10.0.2.nupkg.sha512",
+        "lib/netstandard2.0/Npgsql.dll",
+        "lib/netstandard2.0/Npgsql.xml",
+        "lib/netstandard2.1/Npgsql.dll",
+        "lib/netstandard2.1/Npgsql.xml",
+        "npgsql.8.0.9.nupkg.sha512",
         "npgsql.nuspec",
         "postgresql.png"
       ]
@@ -3925,7 +3928,7 @@
       "Microsoft.AspNetCore.Authentication.JwtBearer >= 8.0.24",
       "Microsoft.AspNetCore.SignalR >= 1.2.9",
       "Microsoft.Data.SqlClient >= 7.0.1",
-      "Npgsql >= 10.0.2",
+      "Npgsql >= 8.0.9",
       "Serilog.AspNetCore >= 10.0.0",
       "Serilog.Formatting.Compact >= 3.0.0",
       "Serilog.Sinks.Http >= 9.2.1",
@@ -4012,7 +4015,7 @@
           },
           "Npgsql": {
             "target": "Package",
-            "version": "[10.0.2, )"
+            "version": "[8.0.9, )"
           },
           "Serilog.AspNetCore": {
             "target": "Package",

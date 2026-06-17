@@ -30,7 +30,7 @@ namespace VenderTest.Controllers
 
                 var result = await _userService.LoginAsync(
                     request.Email,
-                    request.password   // ✅ FIXED
+                    request.password   
                 );
 
                 if (result == null)
