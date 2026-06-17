@@ -1,6 +1,4 @@
-﻿using BCrypt.Net;
-using System.Security.Cryptography;
-using System.Text;
+﻿using Npgsql;
 using VenderTest.DTOs;
 using VenderTest.Repository;
 
@@ -12,89 +10,73 @@ public class UserRepository : IUserRepository
     {
         _repo = repo;
     }
-    private string HashPassword(string password)
-    {
-        using (SHA256 sha = SHA256.Create())
-        {
-            var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return BitConverter.ToString(bytes).Replace("-", "");
-        }
-    }
 
     public async Task<UserDto> LoginAsync(string email, string password)
     {
         try
         {
-            var user = await _repo.QueryFirstOrDefaultAsync<UserDto>(
-            @"SELECT 
-            ""UserId"",
-            ""Email"",
-            ""PaswdHash"",
-            ""IsActive"",
-            ""IsDeleted""
-        FROM ""_vender"".""User""
-        WHERE ""Email"" = @Email
-        AND ""IsDeleted"" = FALSE",
-            new { Email = email });
+            // SP_UserLogin(p_Email, p_Password)
+            var result = await _repo.QueryFirstOrDefaultAsync<UserDto>(
+                "_vender.SP_UserLogin",
+                new
+                {
+                    Email = email,
+                    Password = password
+                });
 
-            if (user == null)
+            if (result == null)
             {
-                return new UserDto { Status = 0, Message = "Invalid email or password" };
+                return new UserDto
+                {
+                    Status = 0,
+                    Message = "Invalid email or password"
+                };
             }
 
-            // 🔥 SHA256 compare (CORRECT)
-            if (user.PaswdHash != HashPassword(password))
-            {
-                return new UserDto { Status = 0, Message = "Invalid email or password" };
-            }
-
-            return new UserDto
-            {
-                Status = 1,
-                Message = "Login successful",
-                UserId = user.UserId,
-                Email = user.Email
-            };
+            return result;
         }
-        catch (Exception ex)
+        catch (NpgsqlException)
         {
-            return new UserDto { Status = 0, Message = ex.Message };
+            return new UserDto { Status = 0, Message = "Database error occurred" };
+        }
+        catch (Exception)
+        {
+            return new UserDto { Status = 0, Message = "Application error occurred" };
         }
     }
 
-    // ================= REGISTER =================
     public async Task<UserDto> RegisterUserAsync(string email, string password, string venderCode)
     {
         try
         {
-            var hash = BCrypt.Net.BCrypt.HashPassword(password);
-
+            // SP_RegisterUser(p_Email, p_Password, p_VenderCode)
             var result = await _repo.QueryFirstOrDefaultAsync<UserDto>(
-                @"SELECT * FROM ""_vender"".sp_registeruser(
-                @Email,
-                @Password,
-                @VenderCode)",
+                "_vender.SP_RegisterUser",
                 new
                 {
                     Email = email,
-                    Password = hash,
+                    Password = password,
                     VenderCode = venderCode
                 });
 
-            return result ?? new UserDto
+            if (result == null)
             {
-                Status = 0,
-                Message = "Registration failed"
-            };
+                return new UserDto
+                {
+                    Status = 0,
+                    Message = "No response from database"
+                };
+            }
+
+            return result;
         }
-        catch (Exception ex)
+        catch (NpgsqlException)
         {
-            return new UserDto
-            {
-                Status = 0,
-                Message = ex.Message
-            };
+            return new UserDto { Status = 0, Message = "Database error occurred" };
         }
-    
-}
+        catch (Exception)
+        {
+            return new UserDto { Status = 0, Message = "Application error occurred" };
+        }
+    }
 }

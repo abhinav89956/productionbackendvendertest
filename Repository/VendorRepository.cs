@@ -21,20 +21,18 @@ namespace VenderTest.Repository
             try
             {
                 var venders = await _genericRepository.QueryAsync<Vendor>(
-                    @"SELECT * FROM ""_vender"".sp_getallvenders(
-                        @SearchVenderCode,
-                        @PageNumber,
-                        @PageSize)",
+                    "_vender.SP_GetAllVenders",
                     new
                     {
                         SearchVenderCode = searchVenderCode,
                         PageNumber = pageNumber,
                         PageSize = pageSize
-                    });
+                    }
+                );
 
                 return venders.ToList();
             }
-            catch
+            catch (Exception)
             {
                 return new List<Vendor>();
             }
@@ -44,17 +42,16 @@ namespace VenderTest.Repository
         {
             try
             {
+                // SP_AddVenderWithLotStrict(p_VenderCode, p_CodeDescription, p_Email)
                 var spResult = await _genericRepository.QueryFirstOrDefaultAsync<ApiResponseDto>(
-                    @"SELECT * FROM ""_vender"".sp_addvenderwithlotstrict(
-                        @VenderCode,
-                        @CodeDescription,
-                        @Email)",
+                    "_vender.SP_AddVenderWithLotStrict",
                     new
                     {
                         VenderCode = vendor.VenderCode,
                         CodeDescription = vendor.CodeDescription,
                         Email = vendor.Email
-                    });
+                    }
+                );
 
                 return spResult ?? new ApiResponseDto
                 {
@@ -76,13 +73,9 @@ namespace VenderTest.Repository
         {
             try
             {
+                // SP_UpdateVender(p_VenderId, p_VenderCode, p_CodeDescription, p_Email, p_IsActive)
                 var spResult = await _genericRepository.QueryFirstOrDefaultAsync<ApiResponseDto>(
-                    @"SELECT * FROM ""_vender"".sp_updatevender(
-                        @VenderId,
-                        @VenderCode,
-                        @CodeDescription,
-                        @Email,
-                        @IsActive)",
+                    "_vender.SP_UpdateVender",
                     new
                     {
                         VenderId = vendor.VenderId,
@@ -90,7 +83,8 @@ namespace VenderTest.Repository
                         CodeDescription = vendor.CodeDescription,
                         Email = vendor.Email,
                         IsActive = vendor.IsActive
-                    });
+                    }
+                );
 
                 return spResult ?? new ApiResponseDto
                 {
@@ -112,13 +106,11 @@ namespace VenderTest.Repository
         {
             try
             {
+                // SP_DeleteVender(p_VenderId)
                 var spResult = await _genericRepository.QueryFirstOrDefaultAsync<ApiResponseDto>(
-                    @"SELECT * FROM ""_vender"".sp_deletevender(
-                        @VenderId)",
-                    new
-                    {
-                        VenderId = vendor.VenderId
-                    });
+                    "_vender.SP_DeleteVender",
+                    new { VenderId = vendor.VenderId }
+                );
 
                 return spResult ?? new ApiResponseDto
                 {
@@ -140,23 +132,18 @@ namespace VenderTest.Repository
         {
             try
             {
+                // SP_VenderItems_AssignUnassign(p_VenderCode, p_ItemCode, p_Action)
                 var spResult = await _genericRepository.QueryFirstOrDefaultAsync<VenderAsignDto>(
-                    @"SELECT * FROM ""_vender"".sp_venderitems_assignunassign(
-                        @VenderCode,
-                        @ItemCode,
-                        @Action)",
+                    "_vender.SP_VenderItems_AssignUnassign",
                     new
                     {
                         VenderCode = venderCode,
                         ItemCode = itemCode,
                         Action = "ASSIGN"
-                    });
+                    }
+                );
 
-                return spResult ?? new VenderAsignDto
-                {
-                    Status = 0,
-                    Message = "No response from database"
-                };
+                return spResult!;
             }
             catch (Exception ex)
             {
@@ -173,22 +160,16 @@ namespace VenderTest.Repository
             try
             {
                 var spResult = await _genericRepository.QueryFirstOrDefaultAsync<VenderAsignDto>(
-                    @"SELECT * FROM ""_vender"".sp_venderitems_assignunassign(
-                        @VenderCode,
-                        @ItemCode,
-                        @Action)",
+                    "_vender.SP_VenderItems_AssignUnassign",
                     new
                     {
                         VenderCode = venderCode,
                         ItemCode = itemCode,
                         Action = "UNASSIGN"
-                    });
+                    }
+                );
 
-                return spResult ?? new VenderAsignDto
-                {
-                    Status = 0,
-                    Message = "No response from database"
-                };
+                return spResult!;
             }
             catch (Exception ex)
             {

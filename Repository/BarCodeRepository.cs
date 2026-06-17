@@ -16,8 +16,9 @@ namespace VenderTest.Repository
         {
             try
             {
+                // SP_Barcode_Delete(p_BarcodeId)
                 var result = await _repo.QueryAsync<BarCodeDto>(
-                    @"SELECT * FROM ""_vender"".sp_barcode_delete(@BarcodeId)",
+                    "_vender.SP_Barcode_Delete",
                     new { BarcodeId = barcodeId }
                 );
 
@@ -27,7 +28,7 @@ namespace VenderTest.Repository
                     Message = "Barcode not deleted"
                 };
             }
-            catch
+            catch (Exception)
             {
                 throw;
             }
@@ -37,8 +38,9 @@ namespace VenderTest.Repository
         {
             try
             {
+                // SP_GetItemsByVenderCode(p_VenderCode)
                 var result = await _repo.QueryAsync<VenderItemsDto>(
-                    @"SELECT * FROM ""_vender"".sp_getitemsbyvendercode(@VenderCode)",
+                    "_vender.SP_GetItemsByVenderCode",
                     new { VenderCode = venderCode }
                 );
 
@@ -57,8 +59,9 @@ namespace VenderTest.Repository
         {
             try
             {
+                // SP_GetVenderItemBarcodes() — no parameters
                 var result = await _repo.QueryAsync<BarCodeDto>(
-                    @"SELECT * FROM ""_vender"".sp_getvenderitembarcodes()"
+                    "_vender.SP_GetVenderItemBarcodes"
                 );
 
                 return result.ToList();
@@ -83,15 +86,11 @@ namespace VenderTest.Repository
         {
             try
             {
+                // SP_InsertVenderItemBarcode(p_VenderCode, p_ItemCode, p_VarCode,
+                //                            p_ManufacturingDate, p_ExpiryDate,
+                //                            p_BarcodeBase64, p_PdfBase64)
                 var result = await _repo.QueryAsync<VenderItemsDto>(
-                    @"SELECT * FROM ""_vender"".sp_insertvenderitembarcode(
-                        @VenderCode,
-                        @ItemCode,
-                        @VarCode,
-                        @ManufacturingDate,
-                        @ExpiryDate,
-                        @BarcodeBase64,
-                        @PdfBase64)",
+                    "_vender.SP_InsertVenderItemBarcode",
                     new
                     {
                         VenderCode = venderCode,
