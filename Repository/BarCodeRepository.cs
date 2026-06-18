@@ -16,10 +16,9 @@ namespace VenderTest.Repository
         {
             try
             {
-                // SP_Barcode_Delete(p_BarcodeId)
                 var result = await _repo.QueryAsync<BarCodeDto>(
-                    "_vender.SP_Barcode_Delete",
-                    new { BarcodeId = barcodeId }
+                    @"SELECT * FROM ""_vender"".""sp_barcode_delete""(@p_barcodeid)",
+                    new { p_barcodeid = barcodeId }
                 );
 
                 return result.FirstOrDefault() ?? new BarCodeDto
@@ -38,10 +37,9 @@ namespace VenderTest.Repository
         {
             try
             {
-                // SP_GetItemsByVenderCode(p_VenderCode)
                 var result = await _repo.QueryAsync<VenderItemsDto>(
-                    "_vender.SP_GetItemsByVenderCode",
-                    new { VenderCode = venderCode }
+                    @"SELECT * FROM ""_vender"".""sp_getitemsbyvendercode""(@p_vendercode)",
+                    new { p_vendercode = venderCode }
                 );
 
                 return result.ToList();
@@ -59,9 +57,8 @@ namespace VenderTest.Repository
         {
             try
             {
-                // SP_GetVenderItemBarcodes() — no parameters
                 var result = await _repo.QueryAsync<BarCodeDto>(
-                    "_vender.SP_GetVenderItemBarcodes"
+                    @"SELECT * FROM ""_vender"".""sp_getvenderitembarcodes""()"
                 );
 
                 return result.ToList();
@@ -86,20 +83,24 @@ namespace VenderTest.Repository
         {
             try
             {
-                // SP_InsertVenderItemBarcode(p_VenderCode, p_ItemCode, p_VarCode,
-                //                            p_ManufacturingDate, p_ExpiryDate,
-                //                            p_BarcodeBase64, p_PdfBase64)
                 var result = await _repo.QueryAsync<VenderItemsDto>(
-                    "_vender.SP_InsertVenderItemBarcode",
+                    @"SELECT * FROM ""_vender"".""sp_insertvenderitembarcode""(
+                    @p_vendercode,
+                    @p_itemcode,
+                    @p_varcode,
+                    @p_manufacturingdate,
+                    @p_expirydate,
+                    @p_barcodebase64,
+                    @p_pdfbase64)",
                     new
                     {
-                        VenderCode = venderCode,
-                        ItemCode = itemCode,
-                        VarCode = varcode,
-                        ManufacturingDate = manufacturingDate,
-                        ExpiryDate = expiryDate,
-                        BarcodeBase64 = barcodeBase64,
-                        PdfBase64 = pdfBase64
+                        p_vendercode = venderCode,
+                        p_itemcode = itemCode,
+                        p_varcode = varcode,
+                        p_manufacturingdate = DateOnly.FromDateTime(manufacturingDate),
+                        p_expirydate = DateOnly.FromDateTime(expiryDate),
+                        p_barcodebase64 = barcodeBase64,
+                        p_pdfbase64 = pdfBase64
                     }
                 );
 

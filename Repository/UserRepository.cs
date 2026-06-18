@@ -70,16 +70,16 @@ public class UserRepository : IUserRepository
             var hash = BCrypt.Net.BCrypt.HashPassword(password);
 
             var result = await _repo.QueryFirstOrDefaultAsync<UserDto>(
-                @"SELECT * FROM ""_vender"".sp_registeruser(
-                @Email,
-                @Password,
-                @VenderCode)",
-                new
-                {
-                    Email = email,
-                    Password = hash,
-                    VenderCode = venderCode
-                });
+     @"SELECT * FROM ""_vender"".sp_registeruser(
+    @p_email,
+    @p_password,
+    @p_vendercode)",
+     new
+     {
+         p_email = email,
+         p_password = hash,
+         p_vendercode = venderCode
+     });
 
             return result ?? new UserDto
             {

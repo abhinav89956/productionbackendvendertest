@@ -18,14 +18,9 @@ namespace VenderTest.Repository
         {
             try
             {
-                var parameters = new
-                {
-                    ReceiverId = receiverId   // SP_MarkMessageAsSeen only takes ReceiverId
-                };
-
                 await _genericRepository.ExecuteAsync(
-                    "_vender.SP_MarkMessageAsSeen",
-                    parameters
+                    @"SELECT * FROM ""_vender"".""sp_markmessageasseen""(@p_receiverid)",
+                    new { p_receiverid = receiverId }
                 );
             }
             catch (NpgsqlException ex)
@@ -42,16 +37,8 @@ namespace VenderTest.Repository
         {
             try
             {
-                var parameters = new
-                {
-                    UserId = userId,
-                    ContactUserId = contactUserId
-                };
-
-                return await _genericRepository.QueryFirstOrDefaultAsync<ContactDto>(
-                    "_vender.SP_AddContact",
-                    parameters
-                );
+                // ⚠️ sp_addcontact DB mein nahi hai — direct insert karo
+                throw new NotImplementedException("sp_addcontact function DB mein nahi hai.");
             }
             catch (NpgsqlException ex)
             {
@@ -67,11 +54,9 @@ namespace VenderTest.Repository
         {
             try
             {
-                var parameters = new { UserId = userId };
-
                 var result = await _genericRepository.QueryAsync<BlockedUserDto>(
-                    "_vender.SP_GetBlockedUsers",
-                    parameters
+                    @"SELECT * FROM ""_vender"".""sp_getblockedusers""(@p_userid)",
+                    new { p_userid = userId }
                 );
 
                 return result ?? Enumerable.Empty<BlockedUserDto>();
@@ -90,11 +75,9 @@ namespace VenderTest.Repository
         {
             try
             {
-                var parameters = new { UserId = userId };
-
                 var result = await _genericRepository.QueryAsync<ContactDto>(
-                    "_vender.SP_GetContacts",
-                    parameters
+                    @"SELECT * FROM ""_vender"".""sp_getcontacts""(@p_userid)",
+                    new { p_userid = userId }
                 );
 
                 return result ?? Enumerable.Empty<ContactDto>();
@@ -113,17 +96,19 @@ namespace VenderTest.Repository
         {
             try
             {
-                var parameters = new
-                {
-                    SenderId = model.SenderId,
-                    ReceiverId = model.ReceiverId,
-                    MessageText = model.MessageText,
-                    MessageType = model.MessageType
-                };
-
                 return await _genericRepository.QueryFirstOrDefaultAsync<MessageResultDto>(
-                    "_vender.SP_SendMessage",
-                    parameters
+                    @"SELECT * FROM ""_vender"".""sp_sendmessage""(
+                    @p_senderid,
+                    @p_receiverid,
+                    @p_messagetext,
+                    @p_messagetype)",
+                    new
+                    {
+                        p_senderid = model.SenderId,
+                        p_receiverid = model.ReceiverId,
+                        p_messagetext = model.MessageText,
+                        p_messagetype = model.MessageType
+                    }
                 );
             }
             catch (NpgsqlException ex)
@@ -140,12 +125,9 @@ namespace VenderTest.Repository
         {
             try
             {
-                // Maps to SP_UpdateDeliveredStatus — no SP_MarkMessageDelivered exists
-                var parameters = new { ReceiverId = receiverId };
-
                 await _genericRepository.ExecuteAsync(
-                    "_vender.SP_UpdateDeliveredStatus",
-                    parameters
+                    @"SELECT * FROM ""_vender"".""sp_updatedeliveredstatus""(@p_receiverid)",
+                    new { p_receiverid = receiverId }
                 );
             }
             catch (NpgsqlException ex)
@@ -162,15 +144,15 @@ namespace VenderTest.Repository
         {
             try
             {
-                var parameters = new
-                {
-                    User1 = user1,
-                    User2 = user2
-                };
-
                 var result = await _genericRepository.QueryAsync<MessageResultDto>(
-                    "_vender.SP_GetChatMessages",
-                    parameters
+                    @"SELECT * FROM ""_vender"".""sp_getchatmessages""(
+                    @p_user1,
+                    @p_user2)",
+                    new
+                    {
+                        p_user1 = user1,
+                        p_user2 = user2
+                    }
                 );
 
                 return result ?? Enumerable.Empty<MessageResultDto>();
@@ -189,15 +171,15 @@ namespace VenderTest.Repository
         {
             try
             {
-                var parameters = new
-                {
-                    UserId = userId,
-                    BlockedUserId = blockedUserId
-                };
-
                 var result = await _genericRepository.QueryFirstOrDefaultAsync<BlockResultDto>(
-                    "_vender.SP_BlockUser",
-                    parameters
+                    @"SELECT * FROM ""_vender"".""sp_blockuser""(
+                    @p_userid,
+                    @p_blockeduserid)",
+                    new
+                    {
+                        p_userid = userId,
+                        p_blockeduserid = blockedUserId
+                    }
                 );
 
                 return result?.IsBlocked ?? false;
@@ -216,17 +198,10 @@ namespace VenderTest.Repository
         {
             try
             {
-                // SP_UpdateUserStatus does not exist in the DB — using UserStatus table update approach
-                // If you add a dedicated function later, swap the SQL here
-                var parameters = new
-                {
-                    UserId = userId,
-                    Status = status
-                };
-
+                // ⚠️ sp_updateuserstatus DB mein nahi hai — LastSeen update use karo
                 await _genericRepository.ExecuteAsync(
-                    "_vender.SP_UpdateUserStatus",
-                    parameters
+                    @"SELECT * FROM ""_vender"".""sp_updateuserlastseen""(@p_userid)",
+                    new { p_userid = userId }
                 );
 
                 return true;
@@ -245,11 +220,9 @@ namespace VenderTest.Repository
         {
             try
             {
-                var parameters = new { UserId = userId };
-
                 var result = await _genericRepository.QueryAsync<NotificationDto>(
-                    "_vender.SP_GetNotifications",
-                    parameters
+                    @"SELECT * FROM ""_vender"".""sp_getnotifications""(@p_userid)",
+                    new { p_userid = userId }
                 );
 
                 return result ?? Enumerable.Empty<NotificationDto>();
@@ -268,11 +241,9 @@ namespace VenderTest.Repository
         {
             try
             {
-                var parameters = new { ReceiverId = receiverId };
-
                 await _genericRepository.ExecuteAsync(
-                    "_vender.SP_UpdateDeliveredStatus",
-                    parameters
+                    @"SELECT * FROM ""_vender"".""sp_updatedeliveredstatus""(@p_receiverid)",
+                    new { p_receiverid = receiverId }
                 );
             }
             catch (NpgsqlException ex)
@@ -289,16 +260,15 @@ namespace VenderTest.Repository
         {
             try
             {
-                // SP_UpdateSeenStatus takes (p_ReceiverId, p_MessageId) — note order
-                var parameters = new
-                {
-                    ReceiverId = receiverId,
-                    MessageId = messageId
-                };
-
                 await _genericRepository.ExecuteAsync(
-                    "_vender.SP_UpdateSeenStatus",
-                    parameters
+                    @"SELECT * FROM ""_vender"".""sp_updateseenstatus""(
+                    @p_receiverid,
+                    @p_messageid)",
+                    new
+                    {
+                        p_receiverid = receiverId,
+                        p_messageid = messageId
+                    }
                 );
             }
             catch (NpgsqlException ex)
@@ -315,11 +285,9 @@ namespace VenderTest.Repository
         {
             try
             {
-                var parameters = new { UserId = userId };
-
                 await _genericRepository.ExecuteAsync(
-                    "_vender.SP_UpdateUserLastSeen",
-                    parameters
+                    @"SELECT * FROM ""_vender"".""sp_updateuserlastseen""(@p_userid)",
+                    new { p_userid = userId }
                 );
             }
             catch (NpgsqlException ex)

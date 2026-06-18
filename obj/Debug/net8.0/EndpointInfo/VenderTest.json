@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "VenderTest",
-    "version": "1.0"
+    "title": "VenderTest API",
+    "version": "v1"
   },
   "paths": {
     "/api/BarCode/GetBarcodes": {
@@ -1180,6 +1180,19 @@
         },
         "additionalProperties": false
       }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Sirf token daalo — Swagger khud 'Bearer ' lagata hai",
+        "scheme": "Bearer",
+        "bearerFormat": "JWT"
+      }
     }
-  }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
 }

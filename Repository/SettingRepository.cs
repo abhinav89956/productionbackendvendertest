@@ -13,9 +13,9 @@ namespace VenderTest.Repository
 
         public async Task<Setting> GetSettings()
         {
-            // SP_Settings_Get() — no parameters
+            // ✅ FIX - SELECT syntax
             var result = await _genericRepository.QueryFirstOrDefaultAsync<Setting>(
-                "_vender.SP_Settings_Get"
+                @"SELECT * FROM ""_vender"".""sp_settings_get""()"
             );
 
             return result;
@@ -23,15 +23,19 @@ namespace VenderTest.Repository
 
         public async Task<Setting> UpdateSettings(Setting model)
         {
-            // SP_Settings_Update(p_Id, p_MinExpiryMonths, p_ManufacturingDays, p_ExpiryTokenHrs)
+            // ✅ FIX - SELECT syntax + p_ prefix
             var result = await _genericRepository.QueryFirstOrDefaultAsync<Setting>(
-                "_vender.SP_Settings_Update",
+                @"SELECT * FROM ""_vender"".""sp_settings_update""(
+                @p_id,
+                @p_minexpirymonths,
+                @p_manufacturingdays,
+                @p_expirytokenhrs)",
                 new
                 {
-                    Id = model.Id,
-                    MinExpiryMonths = model.MinExpiryMonths,
-                    ManufacturingDays = model.ManufacturingDays,
-                    ExpiryTokenHrs = model.ExpiryTokenHrs
+                    p_id = model.Id,
+                    p_minexpirymonths = model.MinExpiryMonths,
+                    p_manufacturingdays = model.ManufacturingDays,
+                    p_expirytokenhrs = model.ExpiryTokenHrs
                 }
             );
 

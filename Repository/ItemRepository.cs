@@ -110,18 +110,18 @@ public class ItemRepository : IItemRepository
         try
         {
             var items = await _genericRepository.QueryAsync<ItemDto>(
-                @"SELECT * FROM ""_vender"".sp_getallitems(
-                @SearchItemCode,
-                @PageNumber,
-                @PageSize)",
-                new
-                {
-                    SearchItemCode = string.IsNullOrWhiteSpace(searchItemCode)
-                        ? null
-                        : searchItemCode,
-                    PageNumber = pageNumber,
-                    PageSize = pageSize
-                });
+    @"SELECT * FROM ""_vender"".sp_getallitems(
+    @p_searchitemcode,
+    @p_pagenumber,
+    @p_pagesize)",
+    new
+    {
+        p_searchitemcode = string.IsNullOrWhiteSpace(searchItemCode)
+            ? null
+            : searchItemCode,
+        p_pagenumber = pageNumber,
+        p_pagesize = pageSize
+    });
 
             return items.ToList();
         }
